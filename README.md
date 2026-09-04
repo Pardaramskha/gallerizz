@@ -2,6 +2,12 @@
   <img src="gallerizz-header.png" alt="Gallerizz — Une galerie pour les gouverner toutes">
 </p>
 
+<p align="center">
+  <a href="https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-Setup.exe"><b>⬇️&nbsp;Télécharger Gallerizz pour Windows</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-portable.zip">version portable (zip)</a>
+</p>
+
 # Gallerizz
 
 Marre que vos galeries ne lisent pas tous les fichiers ? Marre qu'on vous demande de sauvegarder les photos floues prises à 5h du mat sur le cloud ? Marre que vos GIFs de canard ne puissent être lus que sur chrome ? Cette app est faite pour vous.
@@ -18,7 +24,7 @@ Elle lit tous les formats image que je connais, tout simplement. Pas besoin de c
 
 Là où vous voulez. 
 
-L'installeur va créer un dossier là où se trouve l'installeur, donc créez-vous un petit dossier dont vous vous souviendrez dans documents/ ou downloads/, et déballez l'app.
+[Téléchargez l'installeur](https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-Setup.exe) : il va créer un dossier là où il se trouve, donc créez-vous un petit dossier dont vous vous souviendrez dans documents/ ou downloads/, et déballez l'app.
 
 ## La définir par défaut
 
