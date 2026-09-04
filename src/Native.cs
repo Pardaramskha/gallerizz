@@ -8,6 +8,18 @@ namespace Gallerizz
     // P/Invoke : tri naturel de l'Explorateur, envoi à la corbeille, chrome sombre.
     internal static class Native
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetDefaultDllDirectories(uint flags);
+
+        // Restreint la recherche de DLL au dossier de l'app et aux dossiers système :
+        // sans cela, un dossier piégé (image + fausse libwebp.dll) pourrait faire charger
+        // du code arbitraire via le répertoire courant. À appeler avant tout DllImport différé.
+        internal static void HardenDllSearch()
+        {
+            try { SetDefaultDllDirectories(0x00001000); } // LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+            catch { }
+        }
+
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 

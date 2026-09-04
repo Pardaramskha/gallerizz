@@ -29,10 +29,12 @@ internal static class Setup
             using (var zip = new ZipArchive(s, ZipArchiveMode.Read))
             {
                 Directory.CreateDirectory(target);
+                string root = Path.GetFullPath(target).TrimEnd('\\') + "\\";
                 foreach (ZipArchiveEntry entry in zip.Entries)
                 {
                     if (entry.FullName.EndsWith("/")) continue;
-                    string dest = Path.Combine(target, entry.FullName.Replace('/', '\\'));
+                    string dest = Path.GetFullPath(Path.Combine(target, entry.FullName.Replace('/', '\\')));
+                    if (!dest.StartsWith(root, StringComparison.OrdinalIgnoreCase)) continue; // Zip Slip
                     string destDir = Path.GetDirectoryName(dest);
                     if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
                     entry.ExtractToFile(dest, true); // ecrase : reinstaller = mettre a jour

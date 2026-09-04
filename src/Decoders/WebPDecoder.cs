@@ -50,7 +50,7 @@ namespace Gallerizz
             {
                 int w, h;
                 if (WebPGetInfo(bytes, (UIntPtr)bytes.Length, out w, out h) == 0) return null;
-                if (w <= 0 || h <= 0) return null;
+                if (w <= 0 || h <= 0 || (long)w * h > ImageLoader.MaxRasterPixels) return null;
                 int stride = w * 4;
                 int size = stride * h;
                 IntPtr buffer = Marshal.AllocHGlobal(size);

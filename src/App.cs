@@ -10,6 +10,7 @@ namespace Gallerizz
         [STAThread]
         private static void Main(string[] args)
         {
+            Native.HardenDllSearch();
             var app = new Application();
             app.ShutdownMode = ShutdownMode.OnMainWindowClose;
             app.DispatcherUnhandledException += OnUnhandled;

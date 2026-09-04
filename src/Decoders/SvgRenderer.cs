@@ -29,6 +29,7 @@ namespace Gallerizz
         private readonly List<CssRule> _rules = new List<CssRule>();
         private readonly string _baseDir;
         private int _useDepth;
+        private int _budget = 50000; // plafond d'éléments rendus : coupe les bombes <use> en largeur
 
         private SvgRenderer(string baseDir) { _baseDir = baseDir; }
 
@@ -209,6 +210,7 @@ namespace Gallerizz
 
         private Drawing RenderElement(XElement el, Ctx parentCtx)
         {
+            if (--_budget < 0) return null;
             string name = el.Name.LocalName;
             switch (name)
             {
@@ -639,6 +641,8 @@ namespace Gallerizz
                 if (f.Equals("sans-serif", StringComparison.OrdinalIgnoreCase)) return new FontFamily("Segoe UI");
                 if (f.Equals("serif", StringComparison.OrdinalIgnoreCase)) return new FontFamily("Times New Roman");
                 if (f.Equals("monospace", StringComparison.OrdinalIgnoreCase)) return new FontFamily("Consolas");
+                // FontFamily accepte des URI/chemins : on n'autorise que de purs noms de police.
+                if (f.IndexOfAny(new[] { '/', '\\', ':', '#', '?', '.' }) >= 0) continue;
                 try { return new FontFamily(f); } catch { }
             }
             return new FontFamily("Segoe UI");
@@ -680,10 +684,15 @@ namespace Gallerizz
                     var dec = BitmapDecoder.Create(new MemoryStream(bytes), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                     bmp = dec.Frames[0];
                 }
-                else if (_baseDir != null && !href.Contains("://"))
+                // Fichiers locaux : uniquement DANS le dossier du SVG (résolution canonique).
+                // Bloque les chemins UNC (\\serveur → fuite d'identifiants NTLM par SMB),
+                // les chemins absolus/lecteur et la remontée ..\ même encodée en %2e.
+                else if (_baseDir != null && href.IndexOf(':') < 0 &&
+                         !href.StartsWith("/") && !href.StartsWith("\\"))
                 {
-                    string path = Path.Combine(_baseDir, Uri.UnescapeDataString(href));
-                    if (File.Exists(path))
+                    string root = Path.GetFullPath(_baseDir).TrimEnd('\\') + "\\";
+                    string path = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(href)));
+                    if (path.StartsWith(root, StringComparison.OrdinalIgnoreCase) && File.Exists(path))
                     {
                         var dec = BitmapDecoder.Create(new MemoryStream(File.ReadAllBytes(path)), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                         bmp = dec.Frames[0];

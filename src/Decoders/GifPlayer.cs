@@ -21,6 +21,11 @@ namespace Gallerizz
     // Données d'un GIF décodé. Constructible hors fil UI (tout est en byte[]).
     internal sealed class GifData
     {
+        // Garde-fous contre les bombes de décompression : un GIF de quelques Ko peut
+        // déclarer un écran de 65535×65535 ou des milliers de frames.
+        private const long MaxCanvasPixels = 268435456;        // 256 Mpx = canevas d'1 Go
+        private const long MaxFramesBytes = 600L * 1024 * 1024; // au-delà, l'animation est tronquée
+
         public int Width;
         public int Height;
         public int LoopCount;   // 0 = infini
@@ -44,6 +49,10 @@ namespace Gallerizz
             data.Height = QueryInt(gmd, "/logscrdesc/Height", 0);
             data.LoopCount = ReadLoopCount(gmd);
 
+            if ((long)data.Width * data.Height > MaxCanvasPixels)
+                throw new InvalidDataException("écran logique démesuré");
+
+            long totalBytes = 0;
             foreach (BitmapFrame frame in dec.Frames)
             {
                 var fmd = frame.Metadata as BitmapMetadata;
@@ -57,6 +66,9 @@ namespace Gallerizz
 
                 var conv = new FormatConvertedBitmap(frame, PixelFormats.Bgra32, null, 0);
                 int w = conv.PixelWidth, h = conv.PixelHeight;
+                if ((long)w * h > MaxCanvasPixels) throw new InvalidDataException("frame démesurée");
+                totalBytes += (long)w * h * 4;
+                if (totalBytes > MaxFramesBytes) break; // bombe : on garde ce qui est déjà décodé
                 if (gf.Width != w) gf.Width = w;
                 if (gf.Height != h) gf.Height = h;
                 gf.Pixels = new byte[w * h * 4];
@@ -72,6 +84,8 @@ namespace Gallerizz
                     if (f.X + f.Width > data.Width) data.Width = f.X + f.Width;
                     if (f.Y + f.Height > data.Height) data.Height = f.Y + f.Height;
                 }
+                if ((long)data.Width * data.Height > MaxCanvasPixels)
+                    throw new InvalidDataException("étendue des frames démesurée");
             }
             return data;
         }

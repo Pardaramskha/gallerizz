@@ -43,6 +43,7 @@ namespace Gallerizz
                 Run("SVG : rendu et pixels", SvgProbe);
                 Run("Fichier corrompu -> erreur propre", CorruptProbe);
                 Run("Grande image : ajustement sans rognage", BigImageProbe);
+                Run("Garde-fous securite (bombes, chemins)", SecurityProbe);
                 Run("Navigation dossier + fenetre reelle", WindowProbe);
             }
             finally
@@ -407,6 +408,54 @@ namespace Gallerizz
                 win.Close();
                 DoEvents();
             }
+        }
+
+        // Les garde-fous du 04/09 : bombes de décompression, bombes <use>, chemins hostiles dans les SVG.
+        private static void SecurityProbe()
+        {
+            // 1. GIF déclarant un écran logique de 60000×60000 (canevas de 14 Go) → erreur propre.
+            var bomb = new List<byte>();
+            bomb.AddRange(Encoding.ASCII.GetBytes("GIF89a"));
+            bomb.AddRange(U16(60000)); bomb.AddRange(U16(60000));
+            bomb.Add(0xF1); bomb.Add(0); bomb.Add(0);
+            bomb.AddRange(new byte[] { 255, 0, 0, 0, 0, 255, 0, 255, 0, 0, 0, 0 });
+            AddFrame(bomb, 0, 0, 4, 4, 10, 0, FillIndices(16, 0));
+            bomb.Add(0x3B);
+            string bombPath = Path.Combine(_workDir, "bombe.gif");
+            File.WriteAllBytes(bombPath, bomb.ToArray());
+            LoadedImage img = ImageLoader.Load(bombPath);
+            Check(img.Error != null, "un GIF a ecran logique demesure doit etre refuse proprement");
+
+            // 2. Bombe <use> en largeur (15^5 expansions potentielles) → le budget coupe, rendu < 10 s.
+            var sb = new StringBuilder("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">");
+            sb.Append("<defs><g id=\"n0\"><rect width=\"1\" height=\"1\"/></g>");
+            for (int level = 1; level <= 5; level++)
+            {
+                sb.Append("<g id=\"n").Append(level).Append("\">");
+                for (int i = 0; i < 15; i++) sb.Append("<use href=\"#n").Append(level - 1).Append("\"/>");
+                sb.Append("</g>");
+            }
+            sb.Append("</defs><use href=\"#n5\"/></svg>");
+            var sw = Stopwatch.StartNew();
+            SvgResult r = SvgRenderer.Render(sb.ToString(), null);
+            sw.Stop();
+            Check(r != null && sw.ElapsedMilliseconds < 10000,
+                "la bombe <use> doit etre coupee par le budget (rendu en " + sw.ElapsedMilliseconds + " ms)");
+
+            // 3. <image> vers un chemin UNC ou en remontee ..\ → jamais charge (zone transparente).
+            string secret = Path.Combine(_workDir, "secret.png");
+            File.WriteAllBytes(secret, MakePng(8, 8, Colors.Red));
+            string svgDir = Path.Combine(_workDir, "svgdir");
+            Directory.CreateDirectory(svgDir);
+            string hostile =
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\">" +
+                "<image href=\"..\\secret.png\" x=\"0\" y=\"0\" width=\"10\" height=\"10\"/>" +
+                "<image href=\"\\\\127.0.0.1\\c$\\x.png\" x=\"10\" y=\"10\" width=\"10\" height=\"10\"/>" +
+                "</svg>";
+            SvgResult r2 = SvgRenderer.Render(hostile, svgDir);
+            BitmapSource px = Rasterize(r2.Image, 20, 20);
+            Check(GetPixel(px, 5, 5)[3] == 0, "la remontee ..\\ doit etre bloquee (pixel transparent attendu)");
+            Check(GetPixel(px, 15, 15)[3] == 0, "le chemin UNC doit etre bloque (pixel transparent attendu)");
         }
 
         private static void WindowProbe()

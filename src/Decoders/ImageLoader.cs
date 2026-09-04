@@ -159,8 +159,20 @@ namespace Gallerizz
             return result;
         }
 
+        // Au-delà d'un demi-gigapixel (2 Go de BGRA), on refuse proprement plutôt que d'engloutir la RAM.
+        internal const long MaxRasterPixels = 536870912;
+
         private static void LoadWic(byte[] bytes, ImageFormatKind kind, LoadedImage result)
         {
+            // Premier passage sans décodage des pixels : les dimensions seules, pour jauger la bombe.
+            var probe = BitmapDecoder.Create(new MemoryStream(bytes), BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+            BitmapFrame probeFrame = probe.Frames[0];
+            if ((long)probeFrame.PixelWidth * probeFrame.PixelHeight > MaxRasterPixels)
+            {
+                result.Error = string.Format("Image démesurée ({0}×{1}) : au-delà d'un demi-gigapixel.",
+                    probeFrame.PixelWidth, probeFrame.PixelHeight);
+                return;
+            }
             var ms = new MemoryStream(bytes);
             var dec = BitmapDecoder.Create(ms, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             BitmapFrame frame = dec.Frames[0];
