@@ -22,6 +22,8 @@ internal static class PngToIco
         src.EndInit();
         src.Freeze();
 
+        // Regle du format ICO : PNG uniquement pour la 256 ; les autres tailles en DIB classique,
+        // sinon l'extracteur d'icones du shell (Explorateur, navigateurs) retombe sur l'icone generique.
         int[] sizes = { 16, 24, 32, 48, 64, 128, 256 };
         var pngs = new List<byte[]>();
         foreach (int size in sizes)
@@ -32,9 +34,13 @@ internal static class PngToIco
                 dc.DrawImage(src, new Rect(0, 0, size, size));
             var rtb = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
             rtb.Render(dv);
-            var enc = new PngBitmapEncoder();
-            enc.Frames.Add(BitmapFrame.Create(rtb));
-            using (var ms = new MemoryStream()) { enc.Save(ms); pngs.Add(ms.ToArray()); }
+            if (size >= 256)
+            {
+                var enc = new PngBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(rtb));
+                using (var ms = new MemoryStream()) { enc.Save(ms); pngs.Add(ms.ToArray()); }
+            }
+            else pngs.Add(MakeDib(rtb, size));
         }
 
         using (var fs = new FileStream(target, FileMode.Create))
@@ -60,5 +66,33 @@ internal static class PngToIco
             foreach (byte[] png in pngs) w.Write(png);
         }
         Console.WriteLine("OK : " + target + " (source : " + source + ")");
+    }
+
+    // Entree DIB 32 bits : BITMAPINFOHEADER (hauteur doublee), pixels BGRA de bas en haut,
+    // puis masque AND 1 bpp a zero (l'alpha fait foi).
+    private static byte[] MakeDib(BitmapSource src, int size)
+    {
+        var conv = new FormatConvertedBitmap(src, PixelFormats.Bgra32, null, 0); // depremultiplie
+        int stride = size * 4;
+        var px = new byte[stride * size];
+        conv.CopyPixels(px, stride, 0);
+        int maskStride = ((size + 31) / 32) * 4;
+        using (var ms = new MemoryStream())
+        using (var w = new BinaryWriter(ms))
+        {
+            w.Write(40);                // biSize
+            w.Write(size);              // biWidth
+            w.Write(size * 2);          // biHeight (XOR + AND)
+            w.Write((ushort)1);         // biPlanes
+            w.Write((ushort)32);        // biBitCount
+            w.Write(0);                 // biCompression
+            w.Write(stride * size + maskStride * size); // biSizeImage
+            w.Write(0); w.Write(0); w.Write(0); w.Write(0);
+            for (int y = size - 1; y >= 0; y--)
+                w.Write(px, y * stride, stride);
+            w.Write(new byte[maskStride * size]);
+            w.Flush();
+            return ms.ToArray();
+        }
     }
 }
