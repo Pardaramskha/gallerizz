@@ -1,11 +1,46 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
 
 namespace Gallerizz
 {
-    // P/Invoke : tri naturel de l'Explorateur et envoi à la corbeille.
+    // P/Invoke : tri naturel de l'Explorateur, envoi à la corbeille, chrome sombre.
     internal static class Native
     {
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        [DllImport("user32.dll", EntryPoint = "SetClassLongPtrW")]
+        private static extern IntPtr SetClassLongPtr(IntPtr hwnd, int index, IntPtr value);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateSolidBrush(uint color);
+
+        private const int GCLP_HBRBACKGROUND = -10;
+        private const uint AnthraciteRef = 0x302D2B; // COLORREF 0x00BBGGRR de #2B2D30
+
+        // Barre de titre et bordure anthracite (Windows 10 1809+/11), et brosse de fond
+        // sombre sur la classe de fenêtre : c'est elle qui cause le flash blanc à l'ouverture.
+        internal static void DarkenChrome(Window window)
+        {
+            window.SourceInitialized += delegate
+            {
+                try
+                {
+                    IntPtr hwnd = new WindowInteropHelper(window).Handle;
+                    if (hwnd == IntPtr.Zero) return;
+                    int one = 1;
+                    DwmSetWindowAttribute(hwnd, 20, ref one, 4); // DWMWA_USE_IMMERSIVE_DARK_MODE
+                    DwmSetWindowAttribute(hwnd, 19, ref one, 4); // variante des builds plus anciens
+                    int color = unchecked((int)AnthraciteRef);
+                    DwmSetWindowAttribute(hwnd, 35, ref color, 4); // DWMWA_CAPTION_COLOR (Win11)
+                    DwmSetWindowAttribute(hwnd, 34, ref color, 4); // DWMWA_BORDER_COLOR (Win11)
+                    SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, CreateSolidBrush(AnthraciteRef));
+                }
+                catch { } // esthétique seulement : jamais bloquant
+            };
+        }
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
         internal static extern int StrCmpLogicalW(string a, string b);
 

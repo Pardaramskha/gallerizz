@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-Setup.exe"><b>⬇️&nbsp;Télécharger Gallerizz pour Windows</b></a>
+  <a href="https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-Setup.exe"><b>Télécharger Gallerizz pour Windows</b></a>
   &nbsp;·&nbsp;
   <a href="https://github.com/Pardaramskha/gallerizz/releases/latest/download/Gallerizz-portable.zip">version portable (zip)</a>
 </p>
@@ -18,6 +18,7 @@ Elle lit tous les formats image que je connais, tout simplement. Pas besoin de c
 
 > [!WARNING]
 > **Avertissement lié à l'IA**
+>
 > Je suis ingé logiciel web, et ça se limite à ça. Ce logiciel a été créé en grande partie avec le support de l'IA, puis débuggué manuellement et vérifié sous toutes les coutures. Ce projet est un projet fun, non pas un projet à visée performative ou professionnelle - traitez-le en conséquence, et continuez d'avoir un usage prudent et raisonnable des outils d'intelligence artificielle.
 
 ## Installation

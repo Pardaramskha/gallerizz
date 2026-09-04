@@ -49,6 +49,7 @@ namespace Gallerizz
             MinHeight = 320;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             AllowDrop = true;
+            Native.DarkenChrome(this); // barre de titre anthracite + anti-flash blanc
 
             _bg = Math.Max(0, Math.Min(Backgrounds.Length - 1, Settings.GetInt("background", 0)));
 
@@ -315,7 +316,7 @@ namespace Gallerizz
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, "Copie impossible : " + ex.Message, "Gallerizz", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageDialog.Show(this, "Copie impossible : " + ex.Message, "Gallerizz", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -324,14 +325,14 @@ namespace Gallerizz
             if (_current == null) return;
             string path = _nav.Current;
             if (path == null || !File.Exists(path)) return;
-            MessageBoxResult res = MessageBox.Show(this,
+            MessageBoxResult res = MessageDialog.Show(this,
                 string.Format("Envoyer « {0} » à la corbeille ?", Path.GetFileName(path)),
-                "Gallerizz", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+                "Gallerizz", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (res != MessageBoxResult.Yes) return;
             _surface.Shutdown(); // libère le fichier avant la suppression
             if (!Native.SendToRecycleBin(path))
             {
-                MessageBox.Show(this, "La suppression a échoué.", "Gallerizz", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageDialog.Show(this, "La suppression a échoué.", "Gallerizz", MessageBoxButton.OK, MessageBoxImage.Warning);
                 ShowPath(path);
                 return;
             }

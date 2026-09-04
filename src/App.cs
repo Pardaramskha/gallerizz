@@ -20,7 +20,7 @@ namespace Gallerizz
 
         private static void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show("Erreur inattendue : " + e.Exception.Message, "Gallerizz",
+            MessageDialog.Show(null, "Erreur inattendue : " + e.Exception.Message, "Gallerizz",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }

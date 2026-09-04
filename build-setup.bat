@@ -19,7 +19,9 @@ copy /y dist\app.zip dist\Gallerizz-portable.zip >nul
 "%FW%\csc.exe" /nologo /target:winexe /out:dist\Gallerizz-Setup.exe /optimize+ /codepage:65001 ^
   /win32icon:assets\gallerizz.ico ^
   /resource:dist\app.zip,app.zip ^
-  /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /r:System.Windows.Forms.dll ^
+  /lib:"%FW%\WPF" ^
+  /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll ^
+  /r:PresentationFramework.dll /r:PresentationCore.dll /r:WindowsBase.dll /r:System.Xaml.dll ^
   tools\setup-stub.cs
 
 if errorlevel 1 (
