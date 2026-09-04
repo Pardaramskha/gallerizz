@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+  <defs>
+    <linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2a52"/>
+      <stop offset="0.6" stop-color="#7a4a7a"/>
+      <stop offset="1" stop-color="#e8894a"/>
+    </linearGradient>
+    <radialGradient id="lune" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.7" stop-color="#fff6d8"/>
+      <stop offset="1" stop-color="#fff6d8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <style>.mont{stroke:none;} .neige{fill:#f0ead8;}</style>
+  <rect x="0" y="0" width="480" height="360" fill="url(#ciel)"/>
+  <circle cx="360" cy="90" r="60" fill="url(#lune)"/>
+  <circle cx="360" cy="90" r="34" fill="#fff2c8"/>
+  <g class="mont">
+    <path d="M0 360 L140 150 L300 360 Z" fill="#3d2b45"/>
+    <path d="M140 150 L172 198 L150 198 L188 258 L160 258 L220 360 L140 360 Z" class="neige" opacity="0.9"/>
+    <path d="M200 360 L340 200 L480 360 Z" fill="#2a1f33"/>
+  </g>
+  <g transform="translate(60,300)">
+    <path d="M0 0 q 30 -40 60 0 t 60 0 t 60 0" fill="none" stroke="#e8b84b" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 14"/>
+  </g>
+  <text x="240" y="52" text-anchor="middle" font-family="Segoe UI" font-size="28" font-weight="bold" fill="#f5e9c8">Gallerizz</text>
+</svg>

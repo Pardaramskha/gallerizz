@@ -1,0 +1,7 @@
+# Artefacts de compilation (distribues via les releases, pas le depot)
+/Gallerizz.exe
+/Gallerizz.Probes.exe
+/dist/
+
+# Documents de travail internes
+/PLAN.md
